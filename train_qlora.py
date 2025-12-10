@@ -66,8 +66,18 @@ class CausalLMCollator:
 def parse_args():
     parser = argparse.ArgumentParser(description="QLoRA finetuning BioMistral-7B su food–polyphenol")
 
-    parser.add_argument("--data_path", type=str, required=True, help="Path al JSONL (dataset_*_chat.jsonl / dataset_short.jsonl)")
-    parser.add_argument("--output_dir", type=str, required=True, help="Directory di output per i checkpoint")
+    parser.add_argument(
+        "--data_path",
+        type=str,
+        required=True,
+        help="Path al JSONL (dataset_biomistral.jsonl / dataset_short.jsonl)",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        required=True,
+        help="Directory di output per i checkpoint",
+    )
 
     parser.add_argument("--model_name", type=str, default="BioMistral/BioMistral-7B")
 
@@ -189,7 +199,8 @@ def load_and_split_dataset(data_path: str) -> DatasetDict:
     def has_split(ex):
         meta = ex.get("meta") or {}
         s = meta.get("split")
-        return s in ("train", "validation", "test")
+        # qui usiamo train / val / test
+        return s in ("train", "val", "test")
 
     ds_all = ds_all.filter(has_split)
 
@@ -208,7 +219,8 @@ def load_and_split_dataset(data_path: str) -> DatasetDict:
     ds_all = ds_all.filter(is_supported)
 
     splits = {}
-    for split_name in ["train", "validation", "test"]:
+    # usiamo "val" come nome split per la validation
+    for split_name in ["train", "val", "test"]:
         def _f(ex, s=split_name):
             meta = ex.get("meta") or {}
             return meta.get("split") == s
@@ -313,13 +325,13 @@ def main():
     # -------------------------
     ds_dict = load_and_split_dataset(args.data_path)
     train_ds = ds_dict.get("train")
-    eval_ds = ds_dict.get("validation")
+    eval_ds = ds_dict.get("val")  # <--- qui usiamo "val" come validation
 
     if train_ds is None or len(train_ds) == 0:
         raise RuntimeError("Nessun split 'train' trovato nel dataset dopo il filtraggio.")
 
     if args.do_eval and (eval_ds is None or len(eval_ds) == 0):
-        print("[WARN] --do_eval richiesto ma non esiste split 'validation' valido. Procedo senza eval.")
+        print("[WARN] --do_eval richiesto ma non esiste split 'val' valido. Procedo senza eval.")
         eval_ds = None
 
     tokenize_fn = make_tokenize_fn(tokenizer, args.max_length)
@@ -333,7 +345,7 @@ def main():
 
     eval_tok = None
     if args.do_eval and eval_ds is not None:
-        print("[INFO] Tokenizzo validation...")
+        print("[INFO] Tokenizzo val...")
         eval_tok = eval_ds.map(
             tokenize_fn,
             batched=False,
@@ -386,7 +398,7 @@ def main():
     trainer.save_state()
 
     if args.do_eval and eval_tok is not None:
-        print("[INFO] Eval finale su validation.")
+        print("[INFO] Eval finale su val.")
         eval_metrics = trainer.evaluate(eval_tok)
         eval_metrics["eval_samples"] = len(eval_tok)
         trainer.log_metrics("eval", eval_metrics)
