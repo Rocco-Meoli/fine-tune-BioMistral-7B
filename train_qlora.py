@@ -108,13 +108,12 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
     - Concatena tutti i system in testa al primo user.
     - Rimuove ruoli diversi da user/assistant.
     - Droppa assistant iniziali.
-    - Merga user consecutivi.
-    - Assicura che l'ultimo messaggio sia assistant.
+    - Merga user/assistant consecutivi.
+    - Assicura che inizio sia user e fine assistant, alternati.
     """
     if not msgs:
         return []
 
-    # sistema: concatena tutto in un prefisso
     system_chunks = [
         m.get("content", "")
         for m in msgs
@@ -122,7 +121,6 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
     ]
     system_pref = "\n".join([s for s in system_chunks if s.strip()])
 
-    # tieni solo user/assistant in ordine
     ua = [
         {"role": m.get("role"), "content": m.get("content", "")}
         for m in msgs
@@ -132,14 +130,12 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
     if not ua:
         return []
 
-    # droppa assistant iniziali
     while ua and ua[0]["role"] == "assistant":
         ua.pop(0)
 
     if not ua:
         return []
 
-    # mergia system dentro al primo user
     if system_pref and ua and ua[0]["role"] == "user":
         first = ua[0]
         sep = "\n\n" if first["content"] else ""
@@ -148,7 +144,6 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
             "content": system_pref + sep + first["content"],
         }
 
-    # merge messaggi consecutivi con lo stesso ruolo
     norm: List[Dict[str, str]] = []
     last_role = None
     for m in ua:
@@ -165,22 +160,21 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
     if not norm:
         return []
 
-    # tronca se l'ultimo non è assistant
     if norm[-1]["role"] != "assistant":
         while norm and norm[-1]["role"] != "assistant":
             norm.pop()
     if len(norm) < 2:
         return []
 
-    # enforce alternanza user/assistant
-    cleaned = []
+    cleaned: List[Dict[str, str]] = []
     last_role = None
     for m in norm:
-        if m["role"] == last_role:
+        role = m["role"]
+        if role == last_role and cleaned:
             cleaned[-1]["content"] += "\n\n" + m["content"]
         else:
             cleaned.append(m)
-            last_role = m["role"]
+            last_role = role
 
     if not cleaned or cleaned[0]["role"] != "user" or cleaned[-1]["role"] != "assistant":
         return []
@@ -195,16 +189,13 @@ def load_and_split_dataset(data_path: str) -> DatasetDict:
     print(f"[INFO] Carico dataset da {data_path}")
     ds_all = load_dataset("json", data_files=data_path)["train"]
 
-    # filtra per esempi con meta.split valido
     def has_split(ex):
         meta = ex.get("meta") or {}
         s = meta.get("split")
-        # qui usiamo train / val / test
         return s in ("train", "val", "test")
 
     ds_all = ds_all.filter(has_split)
 
-    # filtra esempi che, dopo normalizzazione, hanno una conversazione valida
     def is_supported(ex):
         msgs = ex.get("messages", [])
         norm = normalize_messages(msgs)
@@ -219,7 +210,6 @@ def load_and_split_dataset(data_path: str) -> DatasetDict:
     ds_all = ds_all.filter(is_supported)
 
     splits = {}
-    # usiamo "val" come nome split per la validation
     for split_name in ["train", "val", "test"]:
         def _f(ex, s=split_name):
             meta = ex.get("meta") or {}
@@ -237,29 +227,73 @@ def load_and_split_dataset(data_path: str) -> DatasetDict:
 
 
 # -----------------------------
-# Tokenizzazione
+# Tokenizzazione con masking del prompt
 # -----------------------------
 def make_tokenize_fn(tokenizer: AutoTokenizer, max_length: int):
+    """
+    Crea input/labels come nel training, MA:
+    - labels = -100 per tutti i token del prompt (system+user+chunk)
+    - loss solo sui token della risposta finale dell'assistant.
+    """
     def tokenize_example(example):
         raw_msgs = example["messages"]
         msgs = normalize_messages(raw_msgs)
         if not msgs:
             raise ValueError("Example senza messaggi validi dopo normalizzazione.")
 
-        text = tokenizer.apply_chat_template(
+        if msgs[-1]["role"] != "assistant":
+            raise ValueError("L'ultimo messaggio dopo normalizzazione non è assistant.")
+
+        # history: tutti i messaggi tranne l'ultimo assistant
+        history = msgs[:-1]
+        if not history:
+            # in teoria non dovrebbe succedere (serve almeno user + assistant)
+            raise ValueError("Conversazione senza history (solo assistant?).")
+
+        # Prompt: solo history, con generation prompt
+        prompt_text = tokenizer.apply_chat_template(
+            history,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+
+        # Full: history + risposta gold
+        full_text = tokenizer.apply_chat_template(
             msgs,
             tokenize=False,
             add_generation_prompt=False,
         )
 
-        enc = tokenizer(
-            text,
+        # Tokenizzazione full (input effettivo)
+        enc_full = tokenizer(
+            full_text,
             truncation=True,
             max_length=max_length,
             padding=False,
         )
-        enc["labels"] = enc["input_ids"].copy()
-        return enc
+
+        # Tokenizzazione del solo prompt, per sapere quanti token mascherare
+        enc_prompt = tokenizer(
+            prompt_text,
+            truncation=True,
+            max_length=max_length,
+            padding=False,
+        )
+
+        input_ids = enc_full["input_ids"]
+        labels = input_ids.copy()
+
+        prompt_len = len(enc_prompt["input_ids"])
+        # Se per via della truncation il prompt viene tagliato oltre il full, clamp
+        if prompt_len > len(labels):
+            prompt_len = len(labels)
+
+        # Maschera la loss sui token del prompt
+        for i in range(prompt_len):
+            labels[i] = -100
+
+        enc_full["labels"] = labels
+        return enc_full
 
     return tokenize_example
 
@@ -325,7 +359,7 @@ def main():
     # -------------------------
     ds_dict = load_and_split_dataset(args.data_path)
     train_ds = ds_dict.get("train")
-    eval_ds = ds_dict.get("val")  # <--- qui usiamo "val" come validation
+    eval_ds = ds_dict.get("val")
 
     if train_ds is None or len(train_ds) == 0:
         raise RuntimeError("Nessun split 'train' trovato nel dataset dopo il filtraggio.")
@@ -367,7 +401,7 @@ def main():
         warmup_ratio=0.03,
         logging_steps=10,
         save_strategy="epoch",
-        save_total_limit=3,
+        save_total_limit=1,
         bf16=args.bf16,
         tf32=args.tf32,
         weight_decay=0.0,

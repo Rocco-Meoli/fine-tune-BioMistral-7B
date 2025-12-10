@@ -2,7 +2,7 @@
 import argparse
 import math
 from collections import Counter
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import torch
 from datasets import load_dataset, Dataset
@@ -14,23 +14,24 @@ from transformers import (
     TrainingArguments,
     Trainer,
 )
+from dataclasses import dataclass
 
 
 # -------------------------------------------------------
-# Copia della normalize_messages usata nel training
+# Normalizzazione messaggi (stessa del training)
 # -------------------------------------------------------
 def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
     """
     - Concatena tutti i system in testa al primo user.
-    - Tiene solo ruoli user/assistant.
+    - Rimuove ruoli diversi da user/assistant.
     - Droppa assistant iniziali.
-    - Merga messaggi consecutivi con lo stesso ruolo.
-    - Tronca la coda finché non finisce con assistant.
-    - Enforce: inizio = user, fine = assistant.
+    - Merga user/assistant consecutivi.
+    - Assicura: inizio = user, fine = assistant, alternati.
     """
     if not msgs:
         return []
 
+    # 1) concatena tutti i system
     system_chunks = [
         m.get("content", "")
         for m in msgs
@@ -38,20 +39,22 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
     ]
     system_pref = "\n".join([s for s in system_chunks if s.strip()])
 
+    # 2) tieni solo user/assistant
     ua = [
         {"role": m.get("role"), "content": m.get("content", "")}
         for m in msgs
         if m.get("role") in ("user", "assistant")
     ]
-
     if not ua:
         return []
 
+    # 3) droppa assistant iniziali
     while ua and ua[0]["role"] == "assistant":
         ua.pop(0)
     if not ua:
         return []
 
+    # 4) prendi system_pref e mettilo in testa al primo user
     if system_pref and ua and ua[0]["role"] == "user":
         first = ua[0]
         sep = "\n\n" if first["content"] else ""
@@ -60,6 +63,7 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
             "content": system_pref + sep + first["content"],
         }
 
+    # 5) unisci consecutivi con stesso ruolo
     norm: List[Dict[str, str]] = []
     last_role = None
     for m in ua:
@@ -76,12 +80,14 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
     if not norm:
         return []
 
+    # 6) tronca finché non finisce con assistant
     if norm[-1]["role"] != "assistant":
         while norm and norm[-1]["role"] != "assistant":
             norm.pop()
     if len(norm) < 2:
         return []
 
+    # 7) enforce alternanza user/assistant
     cleaned: List[Dict[str, str]] = []
     last_role = None
     for m in norm:
@@ -92,10 +98,7 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
             cleaned.append(m)
             last_role = role
 
-    if not cleaned:
-        return []
-
-    if cleaned[0]["role"] != "user" or cleaned[-1]["role"] != "assistant":
+    if not cleaned or cleaned[0]["role"] != "user" or cleaned[-1]["role"] != "assistant":
         return []
 
     return cleaned
@@ -105,6 +108,7 @@ def normalize_messages(msgs: List[Dict[str, str]]) -> List[Dict[str, str]]:
 # Carica split test
 # -------------------------------------------------------
 def load_test_split(data_path: str) -> Dataset:
+    print(f"[INFO] Carico dataset da {data_path}")
     ds_all = load_dataset("json", data_files=data_path)["train"]
 
     def has_split(ex):
@@ -140,38 +144,14 @@ def load_test_split(data_path: str) -> Dataset:
 
 
 # -------------------------------------------------------
-# Tokenizzazione stile training (per eval LM)
+# Collator per causal LM
 # -------------------------------------------------------
-def make_tokenize_fn(tokenizer: AutoTokenizer, max_length: int):
-    def tokenize_example(example):
-        msgs = normalize_messages(example["messages"])
-        if not msgs:
-            raise ValueError("Example senza messaggi validi dopo normalizzazione.")
-
-        text = tokenizer.apply_chat_template(
-            msgs,
-            tokenize=False,
-            add_generation_prompt=False,
-        )
-
-        enc = tokenizer(
-            text,
-            truncation=True,
-            max_length=max_length,
-            padding=False,
-        )
-        enc["labels"] = enc["input_ids"].copy()
-        return enc
-
-    return tokenize_example
-
-
+@dataclass
 class CausalLMCollator:
-    def __init__(self, tokenizer: AutoTokenizer, label_pad_token_id: int = -100):
-        self.tokenizer = tokenizer
-        self.label_pad_token_id = label_pad_token_id
+    tokenizer: AutoTokenizer
+    label_pad_token_id: int = -100
 
-    def __call__(self, features: List[Dict]) -> Dict[str, torch.Tensor]:
+    def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
         input_ids = [torch.tensor(f["input_ids"], dtype=torch.long) for f in features]
         attention_masks = [torch.tensor(f["attention_mask"], dtype=torch.long) for f in features]
         labels = [torch.tensor(f["labels"], dtype=torch.long) for f in features]
@@ -208,7 +188,73 @@ class CausalLMCollator:
 
 
 # -------------------------------------------------------
-# Metriche meno stupide di exact match
+# Tokenizzazione stile training (masking del prompt)
+# -------------------------------------------------------
+def make_tokenize_fn(tokenizer: AutoTokenizer, max_length: int):
+    """
+    Come nel training:
+    - history = messaggi tranne ultimo assistant
+    - full = history + risposta gold
+    - labels = -100 sui token del prompt, loss solo sulla risposta
+    """
+    def tokenize_example(example):
+        raw_msgs = example["messages"]
+        msgs = normalize_messages(raw_msgs)
+        if not msgs:
+            raise ValueError("Example senza messaggi validi dopo normalizzazione.")
+
+        if msgs[-1]["role"] != "assistant":
+            raise ValueError("Ultimo messaggio non è assistant dopo normalizzazione.")
+
+        history = msgs[:-1]
+        if not history:
+            raise ValueError("Conversazione senza history (solo assistant?).")
+
+        # Prompt: solo history, con generation prompt
+        prompt_text = tokenizer.apply_chat_template(
+            history,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+
+        # Full: history + risposta gold
+        full_text = tokenizer.apply_chat_template(
+            msgs,
+            tokenize=False,
+            add_generation_prompt=False,
+        )
+
+        enc_full = tokenizer(
+            full_text,
+            truncation=True,
+            max_length=max_length,
+            padding=False,
+        )
+        enc_prompt = tokenizer(
+            prompt_text,
+            truncation=True,
+            max_length=max_length,
+            padding=False,
+        )
+
+        input_ids = enc_full["input_ids"]
+        labels = input_ids.copy()
+
+        prompt_len = len(enc_prompt["input_ids"])
+        if prompt_len > len(labels):
+            prompt_len = len(labels)
+
+        for i in range(prompt_len):
+            labels[i] = -100
+
+        enc_full["labels"] = labels
+        return enc_full
+
+    return tokenize_example
+
+
+# -------------------------------------------------------
+# Metriche: token_F1 e triple_F1
 # -------------------------------------------------------
 def token_f1(gold: str, pred: str) -> float:
     gold_tokens = gold.lower().split()
@@ -279,7 +325,7 @@ def eval_lm(
     max_length: int,
     per_device_eval_batch_size: int,
 ):
-    print("[INFO] Inizio eval LM su test (loss / perplexity).")
+    print("[INFO] Inizio eval LM su test (loss / perplexity, con masking prompt).")
     tokenize_fn = make_tokenize_fn(tokenizer, max_length)
 
     test_tok = ds_test.map(
@@ -318,7 +364,7 @@ def eval_lm(
 
 
 # -------------------------------------------------------
-# Eval generativa su test (exact, token F1, triple F1)
+# Eval generativa su test
 # -------------------------------------------------------
 def eval_generation(
     model,
@@ -350,7 +396,6 @@ def eval_generation(
 
             history = msgs[:-1]
             gold = (msgs[-1]["content"] or "").strip()
-
             if not history:
                 continue
 
