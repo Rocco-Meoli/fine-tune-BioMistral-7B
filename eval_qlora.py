@@ -246,7 +246,9 @@ def make_tokenize_fn(tokenizer: AutoTokenizer, max_length: int):
 
         for i in range(prompt_len):
             labels[i] = -100
-
+        if all(l == -100 for l in labels):
+            labels[-1] = input_ids[-1]
+            
         enc_full["labels"] = labels
         return enc_full
 
