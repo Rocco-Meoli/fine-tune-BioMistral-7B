@@ -443,3 +443,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+"""python train_qlora.py \
+  --data_path ds_final_aug.jsonl \
+  --output_dir outputs/biomistral_qlora_foodpoly_final_aug_v1 \
+  --max_length 2048 \
+  --per_device_train_batch_size 2 \
+  --per_device_eval_batch_size 2 \
+  --gradient_accumulation_steps 4 \
+  --learning_rate 3e-5 \
+  --num_train_epochs 6 \
+  --bf16 \
+  --tf32 \
+  --do_eval
+"""
