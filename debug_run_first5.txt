@@ -1,0 +1,372 @@
+[INFO] Loading base model + tokenizer...
+[INFO] Loading LoRA adapter...
+
+==============================================================================================================
+[1/5] paper_id=jam-processing-and-storage-effects-on-blueberry-polyphenolics-and-antioxidant-capacity | chunk_id=p40 | type=paragraph
+--------------------------------------------------------------------------------------------------------------
+
+===== INPUT (chunk_text) =====
+
+Levels of total flavonols were unaffected by jam type, storage time, storage temperature, or any interactions (p>0.05), demonstrating that the compounds were not only stable in response to processing but were also stable during long-term storage. After 2 months of storage, the total flavonol contents of samples varied little, ranging from a low of 323. mg/kg of FW in sugar jams stored at 25 C to a high of 336. mg/kg of FW in sugar jams stored at 4 C. The total flavonol values of samples after 6 months of storage ranged from a low of 299. mg/kg of FW in sugar-free jams stored at 25 C to a high of 337. mg/kg of FW in sugar jams stored at 4 C. After 6 months of storage, the jams retained 87% of the total flavonols found in fresh berries. Our results are consistent with those of H€akkinen et al. (22), who reported excellent stability of flavonols in strawberry jams over 9 months of storage at 5 or -20 C.
+
+===== PRED RAW =====
+
+|food| polyphenol | value | unit | reference |
+|strawberry jam|total flavonols|337|mg/kg FW|this study|
+|strawberry jam|total flavonols|323|mg/kg FW|this study|
+|strawberry jam|total flavonols|299|mg/kg FW|this study|
+|strawberry jam|total flavonols|298|mg/kg FW|this study|
+
+===== GOLD RAW =====
+
+blueberry jam (2 months storage) | total flavonols | 323-336 | mg/kg FW
+blueberry jam (6 months storage) | total flavonols | 299-337 | mg/kg FW
+blueberry jam (6 months storage) | total flavonols | 87 | % retention vs fresh berries
+
+===== DEBUG METRICS (RELAXED) =====
+pred parsed triples: 0 | gold parsed triples: 3
+TP=0 FP=0 FN=3 | ignore_food=True
+
+[Gold missed] (up to 8)
+  - blueberry jam (2 months storage) | total flavonols | (323.0, 336.0) | mg/kgfw
+  - blueberry jam (6 months storage) | total flavonols | (299.0, 337.0) | mg/kgfw
+  - blueberry jam (6 months storage) | total flavonols | 87.0 | %retentionvsfreshberries
+
+
+==============================================================================================================
+[2/5] paper_id=study-of-the-phenolic-profile-of-cider-apple-cultivars-at-maturity-by-multivariate-techniques | chunk_id=t5 | type=table
+--------------------------------------------------------------------------------------------------------------
+
+===== INPUT (chunk_text) =====
+
+| Variety | Ref | PHA1 | B2 | CA | E | PHA2 | Ph XyG | Unk | Ph G | PHA3 | Σ polyphenols | TP | TA |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Calabaza | 1 | 1.71 | 31.09 | 196.67 | 49.16 | 18.98 | 30.75 | 1.30 | 9.54 | 0.85 | 340.04 | 1.29 | 5.51 |
+| Campillo | 2 | 4.03 | 35.14 | 84.29 | 39.78 | 0.00 | 73.92 | 3.19 | 11.76 | 0.44 | 252.55 | 1.00 | 3.92 |
+| Durón Arroes | 3 | 2.24 | 16.93 | 216.39 | 31.71 | 3.89 | 33.59 | 1.24 | 19.15 | 0.99 | 326.14 | | |
+| Dolores | 4 | 0.61 | 0.00 | 74.98 | 10.51 | 6.84 | 19.95 | 0.81 | 6.53 | 0.48 | 120.70 | 0.59 | 4.17 |
+| Lagar | 5 | 1.86 | 151.17 | 377.06 | 190.84 | 21.54 | 159.06 | 8.41 | 17.04 | 0.93 | 927.92 | 2.06 | 4.17 |
+| Miyares | 6 | 1.73 | 49.69 | 70.33 | 66.13 | 31.49 | 51.94 | 2.13 | 18.15 | 0.93 | 292.52 | 1.42 | 3.55 |
+| Reineta Encarnada | 7 | 0.89 | 28.78 | 119.17 | 49.73 | 3.81 | 11.63 | 0.52 | 6.60 | 0.81 | 221.94 | 1.04 | 4.90 |
+| Repinaldo Hueso | 8 | 1.02 | 27.92 | 177.14 | 36.83 | 0.00 | 7.66 | 0.24 | 4.17 | 0.37 | 255.36 | 1.25 | 5.02 |
+| Loroñesa | 9 | 1.93 | 18.73 | 339.11 | 29.59 | 19.02 | 36.23 | 1.29 | 13.95 | 0.63 | 460.47 | 1.56 | 4.29 |
+| Montoto | 10 | 2.84 | 55.66 | 155.23 | 86.00 | 0.00 | 37.88 | 1.93 | 9.70 | 0.59 | 349.84 | 1.46 | 4.41 |
+| Parda Carreño | 11 | 0.93 | 11.13 | 160.75 | 17.46 | 0.00 | 50.34 | 2.28 | 14.04 | 0.75 | 257.69 | 0.98 | 4.53 |
+
+===== PRED RAW =====
+
+| Parda de Castro | 12 | 1.02 | 18.73 | 177.14 | 36.83 | 0.00 | 7.66 | 0.24 | 4.17 | 0.37 | 255.36 | 1.25 | 5.02 |
+| Parda de la Mojana | 13 | 1.02 | 18.73 | 177.14 | 36.83 | 0.00 | 7.66 | 0.24 | 4.17 | 0.37 | 255.36 | 1.25 | 5.02 |
+| Parda de Tamarugal | 14 | 1.02 | 18.73 | 177.14 | 36.83 | 0.00 | 7.66 | 0.24 | 4.17 | 0.37 | 255.36 | 1.25 | 5.02 |
+| Pardilla | 15 | 1.02 | 18.73 | 177.14 | 36.83 | 0.00 | 7.66 | 0.24 | 4.17 | 0.37 | 255.36 | 1.25 | 5.02 |
+| Pimientos de Morcín | 16 | 1.02 | 18.73 | 177.14 | 36.83 | 0.00 | 7.66 | 0.24 | 4.17 | 0.37 | 255.36 | 1.25 | 5.02 |
+| Pimientos de Tejada | 17 | 1.02 | 18.73 | 177.14 | 36.83 | 0.00 | 7.66 | 0
+
+===== GOLD RAW =====
+
+Calabaza | PHA1 | 1.71 | mg/L
+Calabaza | B2 | 31.09 | mg/L
+Calabaza | CA | 196.67 | mg/L
+Calabaza | E | 49.16 | mg/L
+Calabaza | PHA2 | 18.98 | mg/L
+Calabaza | Ph XyG | 30.75 | mg/L
+Calabaza | Unk | 1.30 | mg/L
+Calabaza | Ph G | 9.54 | mg/L
+Calabaza | PHA3 | 0.85 | mg/L
+Calabaza | Σ polyphenols | 340.04 | mg/L
+Calabaza | total polyphenols | 1.29 | mg/L
+Campillo | PHA1 | 4.03 | mg/L
+Campillo | B2 | 35.14 | mg/L
+Campillo | CA | 84.29 | mg/L
+Campillo | E | 39.78 | mg/L
+Campillo | PHA2 | 0.00 | mg/L
+Campillo | Ph XyG | 73.92 | mg/L
+Campillo | Unk | 3.19 | mg/L
+Campillo | Ph G | 11.76 | mg/L
+Campillo | PHA3 | 0.44 | mg/L
+Campillo | Σ polyphenols | 252.55 | mg/L
+Campillo | total polyphenols | 1.00 | mg/L
+Durón Arroes | PHA1 | 2.24 | mg/L
+Durón Arroes | B2 | 16.93 | mg/L
+Durón Arroes | CA | 216.39 | mg/L
+Durón Arroes | E | 31.71 | mg/L
+Durón Arroes | PHA2 | 3.89 | mg/L
+Durón Arroes | Ph XyG | 33.59 | mg/L
+Durón Arroes | Unk | 1.24 | mg/L
+Durón Arroes | Ph G | 19.15 | mg/L
+Durón Arroes | PHA3 | 0.99 | mg/L
+Durón Arroes | Σ polyphenols | 326.14 | mg/L
+Dolores | PHA1 | 0.61 | mg/L
+Dolores | B2 | 0.00 | mg/L
+Dolores | CA | 74.98 | mg/L
+Dolores | E | 10.51 | mg/L
+Dolores | PHA2 | 6.84 | mg/L
+Dolores | Ph XyG | 19.95 | mg/L
+Dolores | Unk | 0.81 | mg/L
+Dolores | Ph G | 6.53 | mg/L
+Dolores | PHA3 | 0.48 | mg/L
+Dolores | Σ polyphenols | 120.70 | mg/L
+Dolores | total polyphenols | 0.59 | mg/L
+Lagar | PHA1 | 1.86 | mg/L
+Lagar | B2 | 151.17 | mg/L
+Lagar | CA | 377.06 | mg/L
+Lagar | E | 190.84 | mg/L
+Lagar | PHA2 | 21.54 | mg/L
+Lagar | Ph XyG | 159.06 | mg/L
+Lagar | Unk | 8.41 | mg/L
+Lagar | Ph G | 17.04 | mg/L
+Lagar | PHA3 | 0.93 | mg/L
+Lagar | Σ polyphenols | 927.92 | mg/L
+Lagar | total polyphenols | 2.06 | mg/L
+Miyares | PHA1 | 1.73 | mg/L
+Miyares | B2 | 49.69 | mg/L
+Miyares | CA | 70.33 | mg/L
+Miyares | E | 66.13 | mg/L
+Miyares | PHA2 | 31.49 | mg/L
+Miyares | Ph XyG | 51.94 | mg/L
+Miyares | Unk | 2.13 | mg/L
+Miyares | Ph G | 18.15 | mg/L
+Miyares | PHA3 | 0.93 | mg/L
+Miyares | Σ polyphenols | 292.52 | mg/L
+Miyares | total polyphenols | 1.42 | mg/L
+Reineta Encarnada | PHA1 | 0.89 | mg/L
+Reineta Encarnada | B2 | 28.78 | mg/L
+Reineta Encarnada | CA | 119.17 | mg/L
+Reineta Encarnada | E | 49.73 | mg/L
+Reineta Encarnada | PHA2 | 3.81 | mg/L
+Reineta Encarnada | Ph XyG | 11.63 | mg/L
+Reineta Encarnada | Unk | 0.52 | mg/L
+Reineta Encarnada | Ph G | 6.60 | mg/L
+Reineta Encarnada | PHA3 | 0.81 | mg/L
+Reineta Encarnada | Σ polyphenols | 221.94 | mg/L
+Reineta Encarnada | total polyphenols | 1.04 | mg/L
+Repinaldo Hueso | PHA1 | 1.02 | mg/L
+Repinaldo Hueso | B2 | 27.92 | mg/L
+Repinaldo Hueso | CA | 177.14 | mg/L
+Repinaldo Hueso | E | 36.83 | mg/L
+Repinaldo Hueso | PHA2 | 0.00 | mg/L
+Repinaldo Hueso | Ph XyG | 7.66 | mg/L
+Repinaldo Hueso | Unk | 0.24 | mg/L
+Repinaldo Hueso | Ph G | 4.17 | mg/L
+Repinaldo Hueso | PHA3 | 0.37 | mg/L
+Repinaldo Hueso | Σ polyphenols | 255.36 | mg/L
+Repinaldo Hueso | total polyphenols | 1.25 | mg/L
+Loron˜ esa | PHA1 | 1.93 | mg/L
+Loron˜ esa | B2 | 18.73 | mg/L
+Loron˜ esa | CA | 339.11 | mg/L
+Loron˜ esa | E | 29.59 | mg/L
+Loron˜ esa | PHA2 | 19.02 | mg/L
+Loron˜ esa | Ph XyG | 36.23 | mg/L
+Loron˜ esa | Unk | 1.29 | mg/L
+Loron˜ esa | Ph G | 13.95 | mg/L
+Loron˜ esa | PHA3 | 0.63 | mg/L
+Loron˜ esa | Σ polyphenols | 460.47 | mg/L
+Loron˜ esa | total polyphenols | 1.56 | mg/L
+Montoto | PHA1 | 2.84 | mg/L
+Montoto | B2 | 55.66 | mg/L
+Montoto | CA | 155.23 | mg/L
+Montoto | E | 86.00 | mg/L
+Montoto | PHA2 | 0.00 | mg/L
+Montoto | Ph XyG | 37.88 | mg/L
+Montoto | Unk | 1.93 | mg/L
+Montoto | Ph G | 9.70 | mg/L
+Montoto | PHA3 | 0.59 | mg/L
+Montoto | Σ polyphenols | 349.84 | mg/L
+Montoto | total polyphenols | 1.46 | mg/L
+Parda Carreño | PHA1 | 0.93 | mg/L
+Parda Carreño | B2 | 11.13 | mg/L
+Parda Carreño | CA | 160.75 | mg/L
+Parda Carreño | E | 17.46 | mg/L
+Parda Carreño | PHA2 | 0.00 | mg/L
+Parda Carreño | Ph XyG | 50.34 | mg/L
+Parda Carreño | Unk | 2.28 | mg/L
+Parda Carreño | Ph G | 14.04 | mg/L
+Parda Carreño | PHA3 | 0.75 | mg/L
+Parda Carreño | Σ polyphenols | 257.69 | mg/L
+Parda Carreño | total polyphenols | 0.98 | mg/L
+
+===== DEBUG METRICS (RELAXED) =====
+pred parsed triples: 0 | gold parsed triples: 120
+TP=0 FP=0 FN=120 | ignore_food=True
+
+[Gold missed] (up to 8)
+  - calabaza | pha1 | 1.71 | mg/l
+  - calabaza | b2 | 31.09 | mg/l
+  - calabaza | ca | 196.67 | mg/l
+  - calabaza | e | 49.16 | mg/l
+  - calabaza | pha2 | 18.98 | mg/l
+  - calabaza | ph xyg | 30.75 | mg/l
+  - calabaza | unk | 1.3 | mg/l
+  - calabaza | ph g | 9.54 | mg/l
+
+
+==============================================================================================================
+[3/5] paper_id=study-of-the-phenolic-profile-of-cider-apple-cultivars-at-maturity-by-multivariate-techniques | chunk_id=p27 | type=paragraph
+--------------------------------------------------------------------------------------------------------------
+
+===== INPUT (chunk_text) =====
+
+At the same time, it was possible to draw a borderline in Figure 3 to differentiate the cider apple varieties with bitter and nonbitter properties. We categorized the samples from the structure visualized in the factorial plot as follows: the bitter class (B, 15 varieties), samples inside the borderline, and the nonbitter class (N, 31 varieties), samples outside the border; 87% of samples belonging to the bitter category presented contents for total phenol >1. g/L, and 90% of samples belonging to the nonbitter category presented total phenol contents <1. g/L .
+
+===== PRED RAW =====
+
+The bitter class (B, 15 varieties) and the nonbitter class (N, 31 varieties) were differentiated by the total phenol content (>1. g/L and <1. g/L, respectively) and the bitter class presented higher total phenol content than the nonbitter class (p < 0.05) .
+
+===== GOLD RAW =====
+
+bitter cider apple varieties (87% of samples) | total phenols | >1 | g/L
+nonbitter cider apple varieties (90% of samples) | total phenols | <1 | g/L
+
+===== DEBUG METRICS (RELAXED) =====
+pred parsed triples: 0 | gold parsed triples: 2
+TP=0 FP=0 FN=2 | ignore_food=True
+
+[Gold missed] (up to 8)
+  - bitter cider apple varieties (87% of samples) | total phenols | >=1.0 | g/l
+  - nonbitter cider apple varieties (90% of samples) | total phenols | <=1.0 | g/l
+
+
+==============================================================================================================
+[4/5] paper_id=jam-processing-and-storage-effects-on-blueberry-polyphenolics-and-antioxidant-capacity | chunk_id=t1 | type=table
+--------------------------------------------------------------------------------------------------------------
+
+===== INPUT (chunk_text) =====
+
+| Anthocyanin | Fresh blueberries (mg/kg FW) | Sugar jam (mg/kg FW) | Sugar-free jam (mg/kg FW) |
+|---|---:|---:|---:|
+| delphinidin 3-galactoside | 1126.9 | 935.2 | 859.6 |
+| cyanidin 3-galactoside | 148.9 | 145.9 | 122.4 |
+| delphinidin 3-arabinoside | 703.8 | 517.6 | 514.9 |
+| petunidin 3-galactoside + cyanidin 3-arabinoside | 908.9 | 694.6 | 698.3 |
+| petunidin 3-glucoside | 75.5 | 35.7 | 46.2 |
+| peonidin 3-galactoside | 290.8 | 230.5 | 261.2 |
+| malvidin 3-galactoside | 1688.6 | 1382.4 | 1366.6 |
+| malvidin 3-glucoside + peonidin 3-arabinoside | 121.1 | 88.8 | 108.2 |
+| malvidin 3-arabinoside | 949.7 | 682.7 | 740.8 |
+
+===== PRED RAW =====
+
+| malvidin 3-rutinoside | 102.1 | 101.1 | 101.1 |
+
+===== GOLD RAW =====
+
+fresh blueberries | delphinidin 3-galactoside | 1126.9 | mg/kg FW
+sugar jam | delphinidin 3-galactoside | 935.2 | mg/kg FW
+sugar-free jam | delphinidin 3-galactoside | 859.6 | mg/kg FW
+fresh blueberries | cyanidin 3-galactoside | 148.9 | mg/kg FW
+sugar jam | cyanidin 3-galactoside | 145.9 | mg/kg FW
+sugar-free jam | cyanidin 3-galactoside | 122.4 | mg/kg FW
+fresh blueberries | delphinidin 3-arabinoside | 703.8 | mg/kg FW
+sugar jam | delphinidin 3-arabinoside | 517.6 | mg/kg FW
+sugar-free jam | delphinidin 3-arabinoside | 514.9 | mg/kg FW
+fresh blueberries | petunidin 3-galactoside + cyanidin 3-arabinoside | 908.9 | mg/kg FW
+sugar jam | petunidin 3-galactoside + cyanidin 3-arabinoside | 694.6 | mg/kg FW
+sugar-free jam | petunidin 3-galactoside + cyanidin 3-arabinoside | 698.3 | mg/kg FW
+fresh blueberries | petunidin 3-glucoside | 75.5 | mg/kg FW
+sugar jam | petunidin 3-glucoside | 35.7 | mg/kg FW
+sugar-free jam | petunidin 3-glucoside | 46.2 | mg/kg FW
+fresh blueberries | peonidin 3-galactoside | 290.8 | mg/kg FW
+sugar jam | peonidin 3-galactoside | 230.5 | mg/kg FW
+sugar-free jam | peonidin 3-galactoside | 261.2 | mg/kg FW
+fresh blueberries | malvidin 3-galactoside | 1688.6 | mg/kg FW
+sugar jam | malvidin 3-galactoside | 1382.4 | mg/kg FW
+sugar-free jam | malvidin 3-galactoside | 1366.6 | mg/kg FW
+fresh blueberries | malvidin 3-glucoside + peonidin 3-arabinoside | 121.1 | mg/kg FW
+sugar jam | malvidin 3-glucoside + peonidin 3-arabinoside | 88.8 | mg/kg FW
+sugar-free jam | malvidin 3-glucoside + peonidin 3-arabinoside | 108.2 | mg/kg FW
+fresh blueberries | malvidin 3-arabinoside | 949.7 | mg/kg FW
+sugar jam | malvidin 3-arabinoside | 682.7 | mg/kg FW
+sugar-free jam | malvidin 3-arabinoside | 740.8 | mg/kg FW
+
+===== DEBUG METRICS (RELAXED) =====
+pred parsed triples: 0 | gold parsed triples: 27
+TP=0 FP=0 FN=27 | ignore_food=True
+
+[Gold missed] (up to 8)
+  - fresh blueberries | delphinidin 3-galactoside | 1126.9 | mg/kgfw
+  - sugar jam | delphinidin 3-galactoside | 935.2 | mg/kgfw
+  - sugar-free jam | delphinidin 3-galactoside | 859.6 | mg/kgfw
+  - fresh blueberries | cyanidin 3-galactoside | 148.9 | mg/kgfw
+  - sugar jam | cyanidin 3-galactoside | 145.9 | mg/kgfw
+  - sugar-free jam | cyanidin 3-galactoside | 122.4 | mg/kgfw
+  - fresh blueberries | delphinidin 3-arabinoside | 703.8 | mg/kgfw
+  - sugar jam | delphinidin 3-arabinoside | 517.6 | mg/kgfw
+
+
+==============================================================================================================
+[5/5] paper_id=47_394 | chunk_id=t6a | type=table
+--------------------------------------------------------------------------------------------------------------
+
+===== INPUT (chunk_text) =====
+
+| Mature soybean beans | Daidzein [%] | Glycitein [%] | Genistein [%] |
+|----------------------|-------------|---------------|---------------|
+| Soybean (domestic), sample 1 | 42.7 | 2.6 | 54.7 |
+| Soybean (domestic), sample 2 | 37.2 | 2.2 | 60.6 |
+| Soybean (China), sample 3 | 53.5 | 8.1 | 38.4 |
+| Soybean (Australia), sample 4 | 48.1 | 6.4 | 45.5 |
+| Soybean (U.S.A.), sample 5 | 51.3 | 7.3 | 41.4 |
+| Soybean (Canada), sample 6 | 48.3 | 5.0 | 46.7 |
+| Soybean (China), black, small, sample 7 | 52.9 | 7.8 | 39.2 |
+| Black soybean (domestic), sample 8 | 40.5 | 2.6 | 56.9 |
+| Black soybean (Korea), sample 9 | 49.7 | 2.4 | 47.9 |
+| Green soybean (domestic), sample 10 | 29.8 | 2.2 | 68.1 |
+| Green soybean (Canada), sample 11 | 50.7 | 3.6 | 45.7 |
+
+===== PRED RAW =====
+
+| Green soybean (China), sample 12 | 49.3 | 3.9 | 46.8 |
+
+===== GOLD RAW =====
+
+Soybean (domestic) (sample 1) | daidzein | 42.7 | %
+Soybean (domestic) (sample 1) | glycitein | 2.6 | %
+Soybean (domestic) (sample 1) | genistein | 54.7 | %
+Soybean (domestic) (sample 2) | daidzein | 37.2 | %
+Soybean (domestic) (sample 2) | glycitein | 2.2 | %
+Soybean (domestic) (sample 2) | genistein | 60.6 | %
+Soybean (China) (sample 3) | daidzein | 53.5 | %
+Soybean (China) (sample 3) | glycitein | 8.1 | %
+Soybean (China) (sample 3) | genistein | 38.4 | %
+Soybean (Australia) (sample 4) | daidzein | 48.1 | %
+Soybean (Australia) (sample 4) | glycitein | 6.4 | %
+Soybean (Australia) (sample 4) | genistein | 45.5 | %
+Soybean (U.S.A.) (sample 5) | daidzein | 51.3 | %
+Soybean (U.S.A.) (sample 5) | glycitein | 7.3 | %
+Soybean (U.S.A.) (sample 5) | genistein | 41.4 | %
+Soybean (Canada) (sample 6) | daidzein | 48.3 | %
+Soybean (Canada) (sample 6) | glycitein | 5.0 | %
+Soybean (Canada) (sample 6) | genistein | 46.7 | %
+Soybean (China), black, small (sample 7) | daidzein | 52.9 | %
+Soybean (China), black, small (sample 7) | glycitein | 7.8 | %
+Soybean (China), black, small (sample 7) | genistein | 39.2 | %
+Black soybean (domestic) (sample 8) | daidzein | 40.5 | %
+Black soybean (domestic) (sample 8) | glycitein | 2.6 | %
+Black soybean (domestic) (sample 8) | genistein | 56.9 | %
+Black soybean (Korea) (sample 9) | daidzein | 49.7 | %
+Black soybean (Korea) (sample 9) | glycitein | 2.4 | %
+Black soybean (Korea) (sample 9) | genistein | 47.9 | %
+Green soybean (domestic) (sample 10) | daidzein | 29.8 | %
+Green soybean (domestic) (sample 10) | glycitein | 2.2 | %
+Green soybean (domestic) (sample 10) | genistein | 68.1 | %
+Green soybean (Canada) (sample 11) | daidzein | 50.7 | %
+Green soybean (Canada) (sample 11) | glycitein | 3.6 | %
+Green soybean (Canada) (sample 11) | genistein | 45.7 | %
+
+===== DEBUG METRICS (RELAXED) =====
+pred parsed triples: 0 | gold parsed triples: 33
+TP=0 FP=0 FN=33 | ignore_food=True
+
+[Gold missed] (up to 8)
+  - soybean (domestic) (sample 1) | daidzein | 42.7 | %
+  - soybean (domestic) (sample 1) | glycitein | 2.6 | %
+  - soybean (domestic) (sample 1) | genistein | 54.7 | %
+  - soybean (domestic) (sample 2) | daidzein | 37.2 | %
+  - soybean (domestic) (sample 2) | glycitein | 2.2 | %
+  - soybean (domestic) (sample 2) | genistein | 60.6 | %
+  - soybean (china) (sample 3) | daidzein | 53.5 | %
+  - soybean (china) (sample 3) | glycitein | 8.1 | %
+
+
+==============================================================================================================
+[DONE] Wrote full debug output to: debug_run_first5.txt
